@@ -20,7 +20,7 @@
    - Выгружает результат скоринга в топик kafka `scoring`
 
 3. **`db`** (postgre Database):
-   - ЧЧитает из Kafka-топика `scoring` результаты скоринга и сохраняет их в PostgreSQL-базу данных.
+   - Читает из Kafka-топика `scoring` результаты скоринга и сохраняет их в PostgreSQL-базу данных.
    - Поддерживает вставку батчами (для ускорения) и вставку по таймауту
    - Позволяет обратиться к данным как из терминала, так и через интерфейс `Streamlit UI`
 
@@ -46,9 +46,8 @@ docker-compose up --build
 - **Streamlit UI**: http://localhost:8501
 - **Kafka UI**: http://localhost:8080
 - **Обращение к базе данных**: 
-```bash
-docker exec -it postgres_db psql -U ml_user -d ml_scores (в терминале)
-```
+   ```bash
+   docker exec -it postgres_db psql -U ml_user -d ml_scores (в терминале)
 - **Логи сервисов**: 
   ```bash
   docker-compose logs <service_name>  # Например: fraud_detector, kafka, interface, db
@@ -74,7 +73,7 @@ docker exec -it postgres_db psql -U ml_user -d ml_scores (в терминале)
     "score": 0.995, 
     "fraud_flag": 1, 
     "transaction_id": "d6b0f7a0-8e1a-4a3c-9b2d-5c8f9d1e2f3a",
-    "created_at": 2025-11-08 01:23:57
+    "created_at": "2025-11-08 01:23:57"
     }
     ```
  - Нажав на кнопку `Посмотреть результаты` в Streamlit UI можно получить информацию о 10 последних фродовых транзакциях и увидеть гистограмму последних 100 предсказаний модели
