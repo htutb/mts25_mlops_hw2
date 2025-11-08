@@ -1,10 +1,8 @@
 import os
 import sys
 import pandas as pd
-import time
 import logging
 import json
-from datetime import datetime
 
 from confluent_kafka import Consumer, Producer, KafkaError
 
@@ -26,7 +24,6 @@ logger = logging.getLogger(__name__)
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 TRANSACTIONS_TOPIC = os.getenv("KAFKA_TRANSACTIONS_TOPIC", "transactions")
 SCORING_TOPIC = os.getenv("KAFKA_SCORING_TOPIC", "scoring")
-
 
 class ProcessingService:
     def __init__(self):
@@ -63,16 +60,16 @@ class ProcessingService:
 
                 # Препроцессинг и предсказание
                 processed_df = run_preproc(self.train, input_df)
-                submission = make_pred(processed_df, "kafka_stream")
+                submission = make_pred(processed_df)
 
                 # Добавляем ID в результат
                 submission['transaction_id'] = transaction_id
 
                 # Отправка результата в топик scoring
-                self.producer.produce(
-                    'scoring',
+                self.producer.produce(SCORING_TOPIC, 
                     value=submission.to_json(orient='records')
                 )
+
                 self.producer.flush()
             except Exception as e:
                 logger.error(f"Error processing message: {e}")

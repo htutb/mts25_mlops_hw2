@@ -19,8 +19,10 @@ services:
       - ml-scorer
     ports:
       - "9095:9095"
+      - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9095
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9095
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
@@ -74,6 +76,7 @@ services:
 
   fraud_detector:
     build: ./fraud_detector
+    container_name: fraud_detector
     networks:
       - ml-scorer
     environment:
@@ -81,8 +84,12 @@ services:
       KAFKA_TRANSACTIONS_TOPIC: "transactions"
       KAFKA_SCORING_TOPIC: "scoring"
     depends_on:
-      - kafka
-      - kafka-setup
+      kafka:
+        condition: service_healthy       
+      kafka-setup:
+        condition: service_completed_successfully 
+      db:
+        condition: service_started
 
   interface:
     build: ./interface
@@ -91,10 +98,57 @@ services:
     environment:
       KAFKA_BROKERS: "kafka:9092"  # Используем внутренний адрес Kafka
       KAFKA_TOPIC: "transactions"
+
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ml_user
+      DB_PASSWORD: ml_pass
+      DB_NAME: ml_scores
+
     depends_on:
       - kafka
     ports:
       - "8501:8501"
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    networks:
+      - ml-scorer
+    environment:
+      POSTGRES_USER: ml_user
+      POSTGRES_PASSWORD: ml_pass
+      POSTGRES_DB: ml_scores
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  db_writer:
+    build: ./db_writer
+    container_name: db_writer
+    networks:
+      - ml-scorer
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+      KAFKA_SCORING_TOPIC: "scoring"
+
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ml_user
+      DB_PASSWORD: ml_pass
+      DB_NAME: ml_scores
+
+    depends_on:
+      kafka:
+        condition: service_healthy
+      kafka-setup:
+        condition: service_completed_successfully
+      db:
+        condition: service_started
+
+volumes:
+  pg_data:
 
 networks:
   ml-scorer:

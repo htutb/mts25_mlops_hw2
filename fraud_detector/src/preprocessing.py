@@ -2,13 +2,13 @@
 import pandas as pd
 import numpy as np
 import logging
+import glob
 
 # Import extra modules
 from geopy.distance import great_circle
 from sklearn.impute import SimpleImputer 
 
 logger = logging.getLogger(__name__)
-RANDOM_STATE = 42
 
 def add_time_features(df):
     logger.debug('Adding time features...')
@@ -59,7 +59,11 @@ def load_train_data():
     n_cats = 50
 
     # Import Train dataset
-    train = pd.read_csv('./train_data/train.csv').drop(columns=['name_1', 'name_2', 'street', 'post_code'])
+    train_files = glob.glob('./train_data/*.csv')
+    if not train_files:
+        raise FileNotFoundError("Нет CSV-файлов в папке ./train_data")
+
+    train = pd.read_csv(train_files[0]).drop(columns=['name_1', 'name_2', 'street', 'post_code'])
     logger.info('Raw train data imported. Shape: %s', train.shape)
 
     # Add some simple time features
@@ -96,8 +100,6 @@ def run_preproc(train, input_df):
     target_col = 'target'
     categorical_cols = ['gender', 'merch', 'cat_id', 'one_city', 'us_state', 'jobs']
     continuous_cols = ['amount', 'population_city']
-    drop_col = ['name_1', 'name_2', 'street', 'post_code']
-    input_df = input_df.drop(columns=drop_col)
     
     # Run category encoding
     for col in categorical_cols:
@@ -146,6 +148,6 @@ def run_preproc(train, input_df):
         output_df.drop(columns=col, inplace=True)
         
     logger.info('Continuous features preprocessing completed. Output shape: %s', output_df.shape)
-    
+
     # Return resulting dataset
     return output_df
