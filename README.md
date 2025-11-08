@@ -47,7 +47,7 @@ docker-compose up --build
 - **Kafka UI**: http://localhost:8080
 - **Обращение к базе данных**: 
    ```bash
-   docker exec -it postgres_db psql -U ml_user -d ml_scores (в терминале)
+   docker exec -it postgres_db psql -U ml_user -d ml_scores
 - **Логи сервисов**: 
   ```bash
   docker-compose logs <service_name>  # Например: fraud_detector, kafka, interface, db
