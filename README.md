@@ -37,10 +37,10 @@
 
 ### Запуск
 ```bash
-git clone https://github.com/your-repo/fraud-detection-system.git
-cd fraud-detection-system
+git clone https://github.com/htutb/mts25_mlops_hw2
+cd mts25_mlops_hw2
 
-docker-compose up --build
+docker compose up --build
 ```
 После запуска:
 - **Streamlit UI**: http://localhost:8501
